@@ -1,0 +1,28 @@
+﻿@page "/"
+@inject IJSRuntime JS
+
+<PageTitle>Home</PageTitle>
+
+<h1>Calling JavaScript!</h1>
+
+<button @onclick="ButtonClicked">Call JavaScript</button>
+<button @onclick="ShowMyAge">Show my Age</button>
+
+@if (MyAge > 0)
+{
+    <div>I'm @MyAge years old.</div>
+}
+
+@code {
+    public int MyAge { get; set; } = 0;
+
+    public async Task ButtonClicked()
+    {
+        await JS.InvokeVoidAsync("showMessage", new object[] { "Calling JavaScript from .NET!" });
+    }
+
+    public async Task ShowMyAge()
+    {
+        MyAge = await JS.InvokeAsync<int>("calculateAge", new object[] { 1990 });
+    }
+}
