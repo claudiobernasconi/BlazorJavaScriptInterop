@@ -1,0 +1,49 @@
+﻿@page "/charts"
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Charts</PageTitle>
+
+<h1>Using Charts.js from Blazor!</h1>
+
+<div style="width: 800px; height: 400px">
+    <canvas id="@HtmlElementId"></canvas>
+</div>
+
+@code {
+    public string HtmlElementId { get; set; } = $"chart_{Guid.NewGuid()}";
+    public LineChartData[] Data { get; set; } = [
+        new LineChartData(2010, 65_400),
+        new LineChartData(2011, 69_600),
+        new LineChartData(2012, 72_250),
+        new LineChartData(2013, 76_800),
+        new LineChartData(2014, 92_400),
+        new LineChartData(2015, 96_180),
+        new LineChartData(2016, 103_500)
+    ];
+    private bool JavaScriptInteropAvailable = false;
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            await JS.InvokeVoidAsync("disposeChart", new object[] { HtmlElementId });
+        }
+        else
+        {
+            JavaScriptInteropAvailable = true;
+        }
+
+        await JS.InvokeVoidAsync("createChart", new object[] { HtmlElementId, Data, "Salary per year" });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (JavaScriptInteropAvailable)
+        {
+            await JS.InvokeVoidAsync("disposeChart", new object[] { HtmlElementId });
+        }
+    }
+
+    public record LineChartData(int Year, int Salary);
+}
