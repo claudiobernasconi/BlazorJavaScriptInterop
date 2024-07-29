@@ -1,0 +1,55 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+@implements IDisposable
+
+<PageTitle>Home</PageTitle>
+
+<h1>Chat from JavaScript!</h1>
+<h2>Messages</h2>
+
+@foreach (var message in ChatMessages)
+{
+    <p>@message</p>
+}
+
+@code {
+    public IList<string> ChatMessages { get; set; } = new List<string>();
+    public DotNetObjectReference<Home>? DotNetReference { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if (firstRender)
+        {
+            DotNetReference = DotNetObjectReference.Create(this);
+            JS.InvokeVoidAsync("generateChatMessages", DotNetReference);
+        }
+    }
+
+    [JSInvokable("AddMessage")]
+    public Task AddChatMessage(string message)
+    {
+        ChatMessages.Add(message);
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task<string> GetName()
+    {
+        return Task.FromResult("Claudio Bernasconi");
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+
+        if (DotNetReference != null)
+        {
+            DotNetReference.Dispose();
+        }
+    }
+}
